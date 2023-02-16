@@ -7,7 +7,7 @@ interface SquareProps {
   onClick: () => void;
 }
 
-export function Square(props: SquareProps) {
+export const Square = (props: SquareProps) => {
   return (
     <button className="square" onClick={props.onClick}>
       {props.value}
