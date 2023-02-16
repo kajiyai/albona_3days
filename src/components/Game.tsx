@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import ReactDOM from "react-dom/client";
+import React, { useReducer } from "react";
 import "../index.css";
 import { Board } from "./index";
 
@@ -9,28 +8,59 @@ interface GameState {
     xIsNext: boolean;
 }
 
+interface GameAction {
+    type: 'CLICK_SQUARE' | 'JUMP_TO';
+    squareIndex?: number;
+    stepNumber?: number;
+}
+
+const initialState: GameState = {
+    history: [{ squares: Array(9).fill(null) }],
+    stepNumber: 0,
+    xIsNext: true,
+};
+
+const gameReducer = (state: GameState, action: GameAction): GameState => {
+    switch (action.type) {
+        case 'CLICK_SQUARE': {
+            const newHistory = state.history.slice(0, state.stepNumber + 1);
+            const current = newHistory[newHistory.length - 1];
+            // Making copy is important.
+            const squares = current.squares.slice();
+            if (calculateWinner(squares) || squares[action.squareIndex!]) {
+                return state;
+            }
+            squares[action.squareIndex!] = state.xIsNext ? 'X' : 'O';
+            return {
+                ...state,
+                history: [...newHistory, { squares }],
+                stepNumber: newHistory.length,
+                xIsNext: !state.xIsNext,
+            };
+        }
+        case 'JUMP_TO': {
+            return {
+                ...state,
+                stepNumber: action.stepNumber!,
+                xIsNext: action.stepNumber! % 2 === 0,
+            };
+        }
+        default:
+            throw new Error(`Unhandled action type: ${action.type}`);
+    }
+}
+
 export const Game: React.FC = () => {
-    const [history, setHistory] = useState([{ squares: Array(9).fill(null) }]);
-    const [stepNumber, setStepNumber] = useState(0);
-    const [xIsNext, setXIsNext] = useState(true);
+    const [state, dispatch] = useReducer(gameReducer, initialState);
+
+    const { history, stepNumber, xIsNext } = state;
 
     const handleClick = (i: number) => {
-        const newHistory = history.slice(0, stepNumber + 1);
-        const current = newHistory[newHistory.length - 1];
-        // Making copy is important.
-        const squares = current.squares.slice();
-        if (calculateWinner(squares) || squares[i]) {
-            return;
-        }
-        squares[i] = xIsNext ? 'X' : 'O';
-        setHistory([...newHistory, { squares }]);
-        setStepNumber(newHistory.length);
-        setXIsNext(!xIsNext);
+        dispatch({ type: 'CLICK_SQUARE', squareIndex: i });
     };
 
     const jumpTo = (step: number) => {
-        setStepNumber(step);
-        setXIsNext(step % 2 === 0);
+        dispatch({ type: 'JUMP_TO', stepNumber: step });
     };
 
     const current = history[stepNumber];
@@ -69,8 +99,9 @@ export const Game: React.FC = () => {
 };
 
 
+
 // helper function
-function calculateWinner(squares: Array<string | null>) {
+const calculateWinner = (squares: Array<string | null>) => {
     const lines = [
         [0, 1, 2],
         [3, 4, 5],
