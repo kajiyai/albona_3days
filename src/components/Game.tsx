@@ -2,6 +2,10 @@ import React, { useReducer } from "react";
 import "../index.css";
 import { Board } from "./index";
 
+// board size setting
+const SIZE: number = 5;
+
+
 interface GameState {
     history: { squares: Array<string | null> }[];
     stepNumber: number;
@@ -88,6 +92,7 @@ export const Game: React.FC = () => {
                 <Board
                     squares={current.squares}
                     onClick={handleClick}
+                    size={SIZE}
                 />
             </div>
             <div className="game-info">
@@ -99,24 +104,37 @@ export const Game: React.FC = () => {
 };
 
 
+const calculateWinner = (squares: Array<string | null>): string | null => {
+    const lines: Array<Array<number>> = [];
 
-// helper function
-const calculateWinner = (squares: Array<string | null>) => {
-    const lines = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6],
-    ];
+    // add horizontal lines
+    for (let i = 0; i < SIZE; i++) {
+        for (let j = 0; j <= SIZE - 5; j++) {
+            lines.push(Array.from({ length: 5 }, (_, k) => i * SIZE + j + k));
+        }
+    }
+
+    // add vertical lines
+    for (let i = 0; i <= SIZE - 5; i++) {
+        for (let j = 0; j < SIZE; j++) {
+            lines.push(Array.from({ length: 5 }, (_, k) => (i + k) * SIZE + j));
+        }
+    }
+
+    // add diagonal lines
+    for (let i = 0; i <= SIZE - 5; i++) {
+        for (let j = 0; j <= SIZE - 5; j++) {
+            lines.push(Array.from({ length: 5 }, (_, k) => (i + k) * SIZE + j + k));
+            lines.push(Array.from({ length: 5 }, (_, k) => (i + k) * SIZE + j + 4 - k));
+        }
+    }
+
     for (let i = 0; i < lines.length; i++) {
-        const [a, b, c] = lines[i];
-        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+        const [a, b, c, d, e] = lines[i];
+        if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c] && squares[a] === squares[d] && squares[a] === squares[e]) {
             return squares[a];
         }
     }
+
     return null;
-}
+};

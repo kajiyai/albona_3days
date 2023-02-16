@@ -6,9 +6,10 @@ import { Square } from "./Square"
 interface BoardProps {
     squares: Array<string | null>;
     onClick: (i: number) => void;
+    size: number;
 }
 
-export const Board: React.FC<BoardProps> = ({ squares, onClick }) => {
+export const Board: React.FC<BoardProps> = ({ squares, onClick, size }) => {
     const renderSquare = (i: number) => {
         return (
             <Square
@@ -18,24 +19,19 @@ export const Board: React.FC<BoardProps> = ({ squares, onClick }) => {
         );
     };
 
+    const boardRows = Array(size)
+        .fill(null)
+        .map((_, i) => (
+            <div key={i} className="board-row">
+                {Array(size)
+                    .fill(null)
+                    .map((_, j) => renderSquare(i * size + j))}
+            </div>
+        ));
+
+
     return (
-        <div>
-            <div className="board-row">
-                {renderSquare(0)}
-                {renderSquare(1)}
-                {renderSquare(2)}
-            </div>
-            <div className="board-row">
-                {renderSquare(3)}
-                {renderSquare(4)}
-                {renderSquare(5)}
-            </div>
-            <div className="board-row">
-                {renderSquare(6)}
-                {renderSquare(7)}
-                {renderSquare(8)}
-            </div>
-        </div>
+        <div>{boardRows}</div>
     );
 }
 
